@@ -337,8 +337,8 @@
       launchAtLoginSupported = result.data.supported === true;
       toggleEl(els.launchAtLoginRow, launchAtLoginSupported);
       if (launchAtLoginSupported) {
-        // Setup 阶段默认开启开机启动，用户可在此页手动关闭。
-        els.launchAtLoginEnabled.checked = true;
+        // 默认不勾选（由用户主动选择是否开机启动）
+        els.launchAtLoginEnabled.checked = false;
       }
     } catch {
       // 获取失败时不阻断 Setup 流程，保持开关隐藏。
