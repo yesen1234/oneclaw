@@ -77,21 +77,16 @@
       <!-- Provider Tab -->
       <section class="tab-panel active" id="tabProvider">
         <h2 data-i18n="provider.title">Model Configuration</h2>
-        <p class="desc" data-i18n="provider.desc">Change your LLM provider, API key, or model.</p>
+        <p class="desc" data-i18n="provider.desc">填写API 密钥。</p>
 
         <!-- 当前 provider 状态指示 -->
         <div class="current-provider-status hidden" id="currentProviderStatus"></div>
 
-        <!-- Provider 分段选择器 -->
+        <!-- Provider：仅 Custom -->
         <div class="provider-tabs" id="providerTabs">
-          <button class="provider-tab active" data-provider="anthropic">Anthropic</button>
-          <button class="provider-tab" data-provider="moonshot">Kimi</button>
-          <button class="provider-tab" data-provider="openai">OpenAI</button>
-          <button class="provider-tab" data-provider="google">Google</button>
-          <button class="provider-tab" data-provider="custom" data-i18n="provider.custom">Custom</button>
+          <button class="provider-tab active" data-provider="custom" data-i18n="provider.custom">Custom</button>
         </div>
 
-        <!-- Moonshot 子平台 -->
         <div class="field-group hidden" id="subPlatformGroup">
           <label data-i18n="provider.platform">Platform</label>
           <div class="radio-group">
@@ -110,10 +105,10 @@
           </div>
         </div>
 
-        <!-- Custom: Base URL -->
-        <div class="field-group hidden" id="baseURLGroup">
+        <!-- Base URL -->
+        <div class="field-group" id="baseURLGroup">
           <label for="baseURL" data-i18n="provider.baseUrl">Base URL</label>
-          <input type="url" id="baseURL" placeholder="https://api.example.com/v1" autocomplete="off">
+          <input type="url" id="baseURL" value="http://127.0.0.1:8080/v1" placeholder="https://api.example.com/v1" autocomplete="off">
         </div>
 
         <!-- API Key -->
@@ -136,20 +131,18 @@
           </div>
         </div>
 
-        <!-- 模型选择（非 Custom） -->
-        <div class="field-group" id="modelSelectGroup">
+        <div class="field-group hidden" id="modelSelectGroup">
           <label for="modelSelect" data-i18n="provider.model">Model</label>
           <select id="modelSelect"></select>
         </div>
 
-        <!-- Custom: Model ID -->
-        <div class="field-group hidden" id="modelInputGroup">
+        <!-- Model ID -->
+        <div class="field-group" id="modelInputGroup">
           <label for="modelInput" data-i18n="provider.modelId">Model ID</label>
-          <input type="text" id="modelInput" placeholder="e.g. my-custom-model" autocomplete="off">
+          <input type="text" id="modelInput" value="qwen-plus" placeholder="e.g. my-custom-model" autocomplete="off">
         </div>
 
-        <!-- Custom: API Type -->
-        <div class="field-group hidden" id="apiTypeGroup">
+        <div class="field-group" id="apiTypeGroup">
           <label data-i18n="provider.apiType">API Type</label>
           <div class="radio-group">
             <label class="radio-item">
@@ -167,8 +160,7 @@
           </div>
         </div>
 
-        <!-- Custom: 图像支持 -->
-        <div class="field-group hidden" id="imageSupportGroup">
+        <div class="field-group" id="imageSupportGroup">
           <label class="checkbox-item">
             <input type="checkbox" id="supportImage" checked>
             <span data-i18n="provider.supportImage">Supports image input</span>

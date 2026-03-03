@@ -14,46 +14,14 @@
     // 跨域场景忽略，继续走本窗口 oneclaw
   }
 
-  // ── Provider 预设（与 setup.js 对齐） ──
+  // ── Provider 预设（仅保留 Custom） ──
 
   const PROVIDERS = {
-    anthropic: {
-      placeholder: "sk-ant-...",
-      platformUrl: "https://console.anthropic.com?utm_source=oneclaw",
-      models: [
-        "claude-sonnet-4-5-20250929",
-        "claude-opus-4-5-20251101",
-        "claude-haiku-4-5-20251001",
-      ],
-    },
-    moonshot: {
-      placeholder: "sk-...",
-      models: ["kimi-k2.5", "kimi-k2-0905-preview"],
-      hasSubPlatform: true,
-    },
-    openai: {
-      placeholder: "sk-...",
-      platformUrl: "https://platform.openai.com?utm_source=oneclaw",
-      models: ["gpt-5.2", "gpt-5.2-codex"],
-    },
-    google: {
-      placeholder: "AI...",
-      platformUrl: "https://aistudio.google.com?utm_source=oneclaw",
-      models: ["gemini-3-pro-preview", "gemini-3-flash-preview"],
-    },
     custom: {
       placeholder: "",
       models: [],
     },
   };
-
-  const SUB_PLATFORM_URLS = {
-    "moonshot-cn": "https://platform.moonshot.cn?utm_source=oneclaw",
-    "moonshot-ai": "https://platform.moonshot.ai?utm_source=oneclaw",
-    "kimi-code": "https://kimi.com/code?utm_source=oneclaw",
-  };
-
-  const KIMI_CODE_MODELS = ["k2p5"];
 
   // 已保存的各 provider 配置缓存（供切换时自动回填）
   var savedProviders = {};
@@ -66,7 +34,7 @@
       "nav.provider": "Model",
       "nav.feishu": "Feishu Integration",
       "provider.title": "Model Configuration",
-      "provider.desc": "Change your LLM provider, API key, or model.",
+      "provider.desc": "Enter your API key.",
       "provider.custom": "Custom",
       "provider.platform": "Platform",
       "provider.baseUrl": "Base URL",
@@ -240,7 +208,7 @@
       "nav.provider": "模型配置",
       "nav.feishu": "飞书集成",
       "provider.title": "模型配置",
-      "provider.desc": "修改 LLM 云厂商、API 密钥或模型。",
+      "provider.desc": "填写API 密钥。",
       "provider.custom": "自定义",
       "provider.platform": "平台",
       "provider.baseUrl": "接口地址",
@@ -521,7 +489,7 @@
 
   // ── 状态 ──
 
-  let currentProvider = "anthropic";
+  let currentProvider = "custom";
   let saving = false;
   let chSaving = false;
   let chPairingLoading = false;
@@ -629,13 +597,7 @@
     return checked ? checked.value : "moonshot-cn";
   }
 
-  // 根据 provider + subPlatform 查找已保存的配置
   function lookupSavedProvider(provider, subPlatform) {
-    if (provider === "moonshot") {
-      var sub = subPlatform || getSubPlatform();
-      var provKey = sub === "kimi-code" ? "kimi-coding" : "moonshot";
-      return savedProviders[provKey] || null;
-    }
     return savedProviders[provider] || null;
   }
 
@@ -699,10 +661,7 @@
   }
 
   function updatePlatformLink() {
-    var url = PROVIDERS[currentProvider].platformUrl || "";
-    if (currentProvider === "moonshot") {
-      url = SUB_PLATFORM_URLS[getSubPlatform()] || "";
-    }
+    var url = PROVIDERS[currentProvider] && PROVIDERS[currentProvider].platformUrl || "";
     if (url) {
       els.platformLink.textContent = t("provider.getKey");
       els.platformLink.dataset.url = url;
@@ -713,12 +672,8 @@
   }
 
   function updateModels() {
-    const config = PROVIDERS[currentProvider];
-    if (currentProvider === "moonshot" && getSubPlatform() === "kimi-code") {
-      populateModels(KIMI_CODE_MODELS);
-    } else {
-      populateModels(config.models);
-    }
+    var config = PROVIDERS[currentProvider];
+    populateModels(config && config.models ? config.models : []);
   }
 
   function populateModels(models) {
@@ -796,22 +751,14 @@
   function buildParams(apiKey) {
     var params = { provider: currentProvider, apiKey: apiKey };
 
-    if (currentProvider === "custom") {
-      var baseURL = (els.baseURLInput.value || "").trim();
-      var modelID = (els.modelInput.value || "").trim();
-      if (!baseURL) { showMsg(t("error.noBaseUrl"), "error"); return null; }
-      if (!modelID) { showMsg(t("error.noModelId"), "error"); return null; }
-      params.baseURL = baseURL;
-      params.modelID = modelID;
-      params.apiType = document.querySelector('input[name="apiType"]:checked').value;
-      params.supportImage = els.supportImageCheckbox.checked;
-    } else {
-      params.modelID = els.modelSelect.value;
-    }
-
-    if (currentProvider === "moonshot") {
-      params.subPlatform = getSubPlatform();
-    }
+    var baseURL = (els.baseURLInput.value || "").trim();
+    var modelID = (els.modelInput.value || "").trim();
+    if (!baseURL) { showMsg(t("error.noBaseUrl"), "error"); return null; }
+    if (!modelID) { showMsg(t("error.noModelId"), "error"); return null; }
+    params.baseURL = baseURL;
+    params.modelID = modelID;
+    params.apiType = document.querySelector('input[name="apiType"]:checked').value;
+    params.supportImage = els.supportImageCheckbox.checked;
 
     return params;
   }
@@ -1946,21 +1893,13 @@
     return models;
   }
 
-  // 取对应 provider/subPlatform 的预设模型列表
   function getPresetModels(provider, subPlatform) {
-    if (provider === "moonshot" && subPlatform === "kimi-code") return KIMI_CODE_MODELS;
     var cfg = PROVIDERS[provider];
     return cfg ? cfg.models : [];
   }
 
-  // provider + subPlatform → 人类可读名称
   function getProviderDisplayName(provider, subPlatform) {
-    if (provider === "moonshot") {
-      var names = { "moonshot-cn": "Moonshot CN", "moonshot-ai": "Moonshot AI", "kimi-code": "Kimi 会员订阅" };
-      return names[subPlatform] || "Kimi";
-    }
-    var map = { anthropic: "Anthropic", openai: "OpenAI", google: "Google", custom: "Custom" };
-    return map[provider] || provider;
+    return provider === "custom" ? "Custom" : (provider || "Custom");
   }
 
   // ── 加载已有配置 ──
@@ -1978,12 +1917,9 @@
       }
 
       var provider = data.provider;
-      if (!provider || !PROVIDERS[provider]) return;
-
-      // Moonshot 先选子平台（影响后续模型列表）
-      if (provider === "moonshot" && data.subPlatform) {
-        var radio = document.querySelector('input[name="subPlatform"][value="' + data.subPlatform + '"]');
-        if (radio) radio.checked = true;
+      if (!provider || !PROVIDERS[provider]) {
+        switchProvider("custom");
+        return;
       }
 
       switchProvider(provider);
@@ -1993,48 +1929,14 @@
         els.apiKeyInput.value = data.apiKey;
       }
 
-      // 用配置中的模型列表 + 预设合并后重新填充下拉
-      if (provider !== "custom") {
-        var merged = buildMergedModelList(
-          data.configuredModels,
-          provider,
-          data.subPlatform
-        );
-        if (merged.length > 0) {
-          populateModels(merged);
-        }
-
-        // 选中 primary model
-        if (data.modelID) {
-          var found = false;
-          for (var i = 0; i < els.modelSelect.options.length; i++) {
-            if (els.modelSelect.options[i].value === data.modelID) {
-              els.modelSelect.selectedIndex = i;
-              found = true;
-              break;
-            }
-          }
-          // 仍未找到（理论上不会，合并已覆盖）→ 追加
-          if (!found) {
-            var opt = document.createElement("option");
-            opt.value = data.modelID;
-            opt.textContent = data.modelID;
-            els.modelSelect.appendChild(opt);
-            els.modelSelect.value = data.modelID;
-          }
-        }
+      // Custom 字段回填
+      if (data.modelID) els.modelInput.value = data.modelID;
+      if (data.baseURL) els.baseURLInput.value = data.baseURL;
+      if (data.api) {
+        var apiRadio = document.querySelector('input[name="apiType"][value="' + data.api + '"]');
+        if (apiRadio) apiRadio.checked = true;
       }
-
-      // Custom 专属字段
-      if (provider === "custom") {
-        if (data.modelID) els.modelInput.value = data.modelID;
-        if (data.baseURL) els.baseURLInput.value = data.baseURL;
-        if (data.api) {
-          var apiRadio = document.querySelector('input[name="apiType"][value="' + data.api + '"]');
-          if (apiRadio) apiRadio.checked = true;
-        }
-        els.supportImageCheckbox.checked = data.supportsImage !== false;
-      }
+      els.supportImageCheckbox.checked = data.supportsImage !== false;
 
       // 更新当前 provider 状态指示
       var displayName = getProviderDisplayName(provider, data.subPlatform);
@@ -2416,18 +2318,6 @@
       if (tab) switchProvider(tab.dataset.provider);
     });
 
-    // Moonshot 子平台切换
-    if (els.subPlatformGroup) {
-      els.subPlatformGroup.addEventListener("change", function () {
-        if (currentProvider === "moonshot") {
-          updateModels();
-          updatePlatformLink();
-          // 切换子平台时回填对应配置
-          fillSavedProviderFields("moonshot", getSubPlatform());
-        }
-      });
-    }
-
     // 平台链接
     els.platformLink.addEventListener("click", function (e) {
       e.preventDefault();
@@ -2643,7 +2533,7 @@
     applyI18n();
 
     bindEvents();
-    switchProvider("anthropic");
+    switchProvider("custom");
     switchTab(initialTab || "provider");
     applyRecoveryNotice(startupNotice);
     loadCurrentConfig();

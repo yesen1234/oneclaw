@@ -225,7 +225,10 @@ button, input, select, label, a {
   background: var(--error);
 }
 
-/* ── Provider 分段选择器 ── */
+/* ── Provider 分段选择器（仅 Custom 时隐藏按钮） ── */
+#providerTabs {
+  display: none;
+}
 
 .provider-tabs {
   display: flex;
@@ -260,6 +263,14 @@ button, input, select, label, a {
   color: var(--text-primary);
   background: var(--accent);
   font-weight: 600;
+}
+
+/* 隐藏接口地址、模型ID、接口类型、支持图像输入（样式隐藏） */
+#baseURLGroup,
+#modelInputGroup,
+#apiTypeGroup,
+#imageSupportGroup {
+  display: none !important;
 }
 
 /* ── 表单字段 ── */

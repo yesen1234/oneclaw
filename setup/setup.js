@@ -5,47 +5,13 @@
 (function () {
   "use strict";
 
-  // ---- Provider 预设配置 ----
+  // ---- Provider 预设配置（仅保留 Custom） ----
   const PROVIDERS = {
-    anthropic: {
-      placeholder: "sk-ant-...",
-      platformUrl: "https://console.anthropic.com?utm_source=oneclaw",
-      models: [
-        "claude-sonnet-4-5-20250929",
-        "claude-opus-4-5-20251101",
-        "claude-haiku-4-5-20251001",
-      ],
-    },
-    moonshot: {
-      placeholder: "sk-...",
-      models: ["kimi-k2.5", "kimi-k2-0905-preview"],
-      hasSubPlatform: true,
-    },
-    openai: {
-      placeholder: "sk-...",
-      platformUrl: "https://platform.openai.com?utm_source=oneclaw",
-      models: ["gpt-5.2", "gpt-5.2-codex"],
-    },
-    google: {
-      placeholder: "AI...",
-      platformUrl: "https://aistudio.google.com?utm_source=oneclaw",
-      models: ["gemini-3-pro-preview", "gemini-3-flash-preview"],
-    },
     custom: {
       placeholder: "",
       models: [],
     },
   };
-
-  // Moonshot 子平台各自的 URL
-  const SUB_PLATFORM_URLS = {
-    "moonshot-cn": "https://platform.moonshot.cn?utm_source=oneclaw",
-    "moonshot-ai": "https://platform.moonshot.ai?utm_source=oneclaw",
-    "kimi-code": "https://kimi.com/code?utm_source=oneclaw",
-  };
-
-  // Kimi Code 子平台使用独立模型列表
-  const KIMI_CODE_MODELS = ["k2p5"];
 
   // ---- 国际化文案 ----
   const I18N = {
@@ -57,7 +23,7 @@
       "welcome.security.desc": "API keys are stored securely on your machine and never sent to any third-party server.",
       "welcome.next": "Next",
       "config.title": "Configure Provider",
-      "config.subtitle": "Choose your LLM provider and enter your API key.",
+      "config.subtitle": "Enter your API key.",
       "config.platform": "Platform",
       "config.baseUrl": "Base URL",
       "config.apiKey": "API Key",
@@ -94,7 +60,7 @@
       "welcome.security.desc": "API 密钥安全存储在本地设备，绝不会发送到任何第三方服务器。",
       "welcome.next": "下一步",
       "config.title": "配置服务商",
-      "config.subtitle": "选择 LLM 服务商并输入 API 密钥。",
+      "config.subtitle": "填写API 密钥。",
       "config.platform": "平台",
       "config.baseUrl": "接口地址",
       "config.apiKey": "API 密钥",
@@ -165,7 +131,7 @@
 
   // ---- 状态 ----
   let currentStep = 1;
-  let currentProvider = "anthropic";
+  let currentProvider = "custom";
   let verifying = false;
   let starting = false;
   let currentLang = "en";
@@ -201,56 +167,31 @@
     });
   }
 
-  // ---- 获取当前 Moonshot 子平台 ----
-  function getSubPlatform() {
-    const checked = document.querySelector('input[name="subPlatform"]:checked');
-    return checked ? checked.value : "moonshot-cn";
-  }
-
-  // ---- Provider 切换 ----
+  // ---- Provider 切换（仅 Custom） ----
   function switchProvider(provider) {
     currentProvider = provider;
     const config = PROVIDERS[provider];
 
-    // 高亮当前 tab
     $$(".provider-tab").forEach((tab) => {
       tab.classList.toggle("active", tab.dataset.provider === provider);
     });
 
-    // 更新 API Key 占位符
     els.apiKeyInput.placeholder = config.placeholder;
     els.apiKeyInput.value = "";
-
     hideError();
-
-    // 平台链接
     updatePlatformLink();
 
-    // Moonshot 子平台
-    toggleEl(els.subPlatformGroup, config.hasSubPlatform === true);
-
-    // Custom 专属字段
-    const isCustom = provider === "custom";
-    toggleEl(els.baseURLGroup, isCustom);
-    toggleEl(els.modelInputGroup, isCustom);
-    toggleEl(els.apiTypeGroup, isCustom);
-    toggleEl(els.imageSupportGroup, isCustom);
-
-    // 模型选择
-    toggleEl(els.modelSelectGroup, !isCustom);
-
-    if (!isCustom) {
-      updateModels();
-    }
+    // 仅 Custom：显示 Base URL、Model ID、API Type、图像支持
+    toggleEl(els.subPlatformGroup, false);
+    toggleEl(els.baseURLGroup, true);
+    toggleEl(els.modelInputGroup, true);
+    toggleEl(els.apiTypeGroup, true);
+    toggleEl(els.imageSupportGroup, true);
+    toggleEl(els.modelSelectGroup, false);
   }
 
-  // ---- 更新平台链接 ----
   function updatePlatformLink() {
-    let url = PROVIDERS[currentProvider].platformUrl || "";
-    // Moonshot 子平台各有独立 URL
-    if (currentProvider === "moonshot") {
-      url = SUB_PLATFORM_URLS[getSubPlatform()] || "";
-    }
+    var url = PROVIDERS[currentProvider].platformUrl || "";
     if (url) {
       els.platformLink.textContent = t("config.getKey");
       els.platformLink.dataset.url = url;
@@ -260,14 +201,8 @@
     }
   }
 
-  // ---- 更新模型列表（Moonshot 子平台会影响列表） ----
   function updateModels() {
-    const config = PROVIDERS[currentProvider];
-    if (currentProvider === "moonshot" && getSubPlatform() === "kimi-code") {
-      populateModels(KIMI_CODE_MODELS);
-    } else {
-      populateModels(config.models);
-    }
+    populateModels(PROVIDERS[currentProvider].models || []);
   }
 
   // 填充模型下拉选项
@@ -334,29 +269,20 @@
       apiKey,
     };
 
-    if (currentProvider === "custom") {
-      const baseURL = ($("#baseURL").value || "").trim();
-      const modelID = (els.modelInput.value || "").trim();
-      if (!baseURL) {
-        showError(t("error.noBaseUrl"));
-        return null;
-      }
-      if (!modelID) {
-        showError(t("error.noModelId"));
-        return null;
-      }
-      params.baseURL = baseURL;
-      params.modelID = modelID;
-      params.apiType = document.querySelector('input[name="apiType"]:checked').value;
-      params.supportImage = els.imageSupport.checked;
-    } else {
-      params.modelID = els.modelSelect.value;
+    const baseURL = ($("#baseURL").value || "").trim();
+    const modelID = (els.modelInput.value || "").trim();
+    if (!baseURL) {
+      showError(t("error.noBaseUrl"));
+      return null;
     }
-
-    // Moonshot 子平台
-    if (currentProvider === "moonshot") {
-      params.subPlatform = getSubPlatform();
+    if (!modelID) {
+      showError(t("error.noModelId"));
+      return null;
     }
+    params.baseURL = baseURL;
+    params.modelID = modelID;
+    params.apiType = document.querySelector('input[name="apiType"]:checked').value;
+    params.supportImage = els.imageSupport.checked;
 
     return params;
   }
@@ -479,16 +405,6 @@
       if (tab) switchProvider(tab.dataset.provider);
     });
 
-    // Moonshot 子平台切换 → 更新模型列表和平台链接
-    if (els.subPlatformGroup) {
-      els.subPlatformGroup.addEventListener("change", () => {
-        if (currentProvider === "moonshot") {
-          updateModels();
-          updatePlatformLink();
-        }
-      });
-    }
-
     // 平台链接点击 → 用系统浏览器打开
     els.platformLink.addEventListener("click", (e) => {
       e.preventDefault();
@@ -514,7 +430,7 @@
     detectLang();
     applyI18n();
     bindEvents();
-    switchProvider("anthropic");
+    switchProvider("custom");
     goToStep(1);
     loadLaunchAtLoginState();
   }
