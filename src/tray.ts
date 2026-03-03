@@ -131,7 +131,7 @@ export class TrayManager {
       ...(showStop ? [{ label: t.stopGateway, enabled: state === "running", click: onStopGateway }] : []),
       { type: "separator" },
       { label: t.settings, click: onOpenSettings },
-      { label: t.checkUpdates, click: onCheckUpdates },
+      // { label: t.checkUpdates, click: onCheckUpdates },
       { type: "separator" },
       { label: t.quit, click: onQuit },
     ]);

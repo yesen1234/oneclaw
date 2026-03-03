@@ -199,7 +199,7 @@ function promptConfigRecovery(opts: {
 // Gateway 启动失败时提示用户进入备份恢复，避免反复重启无效。
 function reportGatewayStartFailure(source: string): RecoveryAction {
   const logPath = resolveGatewayLogPath();
-  const title = "OneClaw Gateway 启动失败";
+  const title = "OpenClaw Gateway 启动失败";
   const detail =
     `来源: ${source}\n` +
     `建议先前往设置 → 备份与恢复，回退到最近可用配置。\n` +
@@ -223,7 +223,7 @@ function reportConfigInvalidFailure(parseError?: string): RecoveryAction {
 
   log.error(`配置文件损坏，JSON 解析失败: ${parseError ?? "unknown"}`);
   return promptConfigRecovery({
-    title: "OneClaw 配置文件损坏",
+    title: "OpenClaw 配置文件损坏",
     message: "检测到 openclaw.json 不是有效 JSON，Gateway 无法启动。",
     detail,
   });
@@ -341,9 +341,9 @@ ipcMain.on("gateway:restart", () => requestGatewayRestart("ipc:restart"));
 ipcMain.on("gateway:start", () => requestGatewayStart("ipc:start"));
 ipcMain.on("gateway:stop", () => requestGatewayStop("ipc:stop"));
 ipcMain.handle("gateway:state", () => gateway.getState());
-ipcMain.on("app:check-updates", () => checkForUpdates(true));
-ipcMain.handle("app:get-update-state", () => getUpdateBannerState());
-ipcMain.handle("app:download-and-install-update", () => downloadAndInstallUpdate());
+// ipcMain.on("app:check-updates", () => checkForUpdates(true));
+// ipcMain.handle("app:get-update-state", () => getUpdateBannerState());
+// ipcMain.handle("app:download-and-install-update", () => downloadAndInstallUpdate());
 ipcMain.handle("app:get-feishu-pairing-state", () => feishuPairingMonitor?.getState());
 ipcMain.on("app:refresh-feishu-pairing-state", () => feishuPairingMonitor?.triggerNow());
 ipcMain.handle("app:open-external", (_e, url: string) => shell.openExternal(url));
@@ -490,23 +490,23 @@ app.whenReady().then(async () => {
   }
   analytics.init();
   analytics.track("app_launched");
-  setupAutoUpdater();
+  //setupAutoUpdater();
   // 自动更新状态变化后推送给当前主窗口，驱动侧栏“重启更新”按钮。
-  setUpdateBannerStateCallback((state) => {
-    windowManager.pushUpdateBannerState(state);
-  });
-  startAutoCheckSchedule();
+  // setUpdateBannerStateCallback((state) => {
+  //   windowManager.pushUpdateBannerState(state);
+  // });
+  //startAutoCheckSchedule();
 
   // 更新安装前先放行窗口关闭，避免托盘“隐藏而不退出”拦截 quitAndInstall。
-  setBeforeQuitForInstallCallback(() => {
-    stopAutoCheckSchedule();
-    windowManager.prepareForAppQuit();
-  });
+  // setBeforeQuitForInstallCallback(() => {
+  //   stopAutoCheckSchedule();
+  //   windowManager.prepareForAppQuit();
+  // });
 
-  // 下载进度 → 更新托盘 tooltip
-  setProgressCallback((pct) => {
-    tray.setTooltip(pct != null ? `OneClaw — 下载更新 ${pct.toFixed(0)}%` : "OneClaw");
-  });
+  // // 下载进度 → 更新托盘 tooltip
+  // setProgressCallback((pct) => {
+  //   tray.setTooltip(pct != null ? `OneClaw — 下载更新 ${pct.toFixed(0)}%` : "OneClaw");
+  // });
 
   tray.create({
     windowManager,
