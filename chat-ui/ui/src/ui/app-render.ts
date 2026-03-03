@@ -425,9 +425,9 @@ export function renderApp(state: AppViewState) {
             onOpenWebUI: () => void handleOpenWebUI(state),
             onOpenDocs: () => {
               if (window.oneclaw?.openExternal) {
-                window.oneclaw.openExternal("https://oneclaw.cn/docs");
+                window.oneclaw.openExternal("https://docs.openclaw.ai/");
               } else {
-                window.open("https://oneclaw.cn/docs", "_blank");
+                window.open("https://docs.openclaw.ai/", "_blank");
               }
             },
             onApplyUpdate: () => void handleApplyUpdate(state),
