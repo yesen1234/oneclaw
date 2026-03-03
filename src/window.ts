@@ -52,7 +52,7 @@ export class WindowManager {
       minWidth: WINDOW_MIN_WIDTH,
       minHeight: WINDOW_MIN_HEIGHT,
       show: false,
-      title: "OneClaw",
+      title: "OpenClaw",
       autoHideMenuBar: true,
       webPreferences: {
         contextIsolation: true,
@@ -60,7 +60,7 @@ export class WindowManager {
         preload: path.join(__dirname, "preload.js"),
       },
     });
-    const title = "OneClaw";
+    const title = "OpenClaw";
     this.win.on("page-title-updated", (event) => {
       event.preventDefault();
       this.win?.setTitle(title);
