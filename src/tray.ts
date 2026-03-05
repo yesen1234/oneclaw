@@ -1,4 +1,5 @@
 import { Tray, Menu, app, nativeImage } from "electron";
+import * as fs from "fs";
 import * as path from "path";
 import { GatewayProcess, GatewayState } from "./gateway-process";
 import { WindowManager } from "./window";
@@ -84,10 +85,19 @@ export class TrayManager {
   create(opts: TrayOptions): void {
     this.opts = opts;
 
+    const assetsDir = path.join(app.getAppPath(), "assets");
     // macOS: Template 图标自动适配暗色模式（由 upstream CritterIconRenderer 生成）
-    const iconName =
-      process.platform === "darwin" ? "tray-iconTemplate@2x.png" : "tray-icon@2x.png";
-    const iconPath = path.join(app.getAppPath(), "assets", iconName);
+    // Windows: 任务栏常为深色，使用浅色图标 tray-icon-win@2x.png 更显眼；若无则回退到 tray-icon@2x.png
+    let iconName: string;
+    if (process.platform === "darwin") {
+      iconName = "tray-iconTemplate@2x.png";
+    } else if (process.platform === "win32") {
+      const winIcon = "tray-icon-win@2x.png";
+      iconName = fs.existsSync(path.join(assetsDir, winIcon)) ? winIcon : "tray-icon@2x.png";
+    } else {
+      iconName = "tray-icon@2x.png";
+    }
+    const iconPath = path.join(assetsDir, iconName);
 
     let icon: Electron.NativeImage;
     try {
